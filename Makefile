@@ -1,5 +1,6 @@
 SRC = main.c \
 	  utils.c \
+	  ping.c \
 
 OBJ = $(SRC:.c=.o)
 

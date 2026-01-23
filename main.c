@@ -22,7 +22,7 @@ int main(int argc, char **argv)
             print_man();
             return(2);
         }
-        printf("Pinggg\n");
+        ping(argv[1]);
         return(0);
     }
     fprintf(stderr, "ft_ping: usage error\n");
