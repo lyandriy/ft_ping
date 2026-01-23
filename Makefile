@@ -1,4 +1,5 @@
 SRC = main.c \
+	  utils.c \
 
 OBJ = $(SRC:.c=.o)
 
