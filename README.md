@@ -7,6 +7,8 @@ socket_raw - https://www.hackplayers.com/2017/05/en-crudo-y-sin-censura-raw-sock
              https://www.cloudflare.com/es-es/learning/ddos/glossary/internet-control-message-protocol-icmp/
              https://aws.amazon.com/es/what-is/icmp/
              https://personales.upv.es/rmartin/TcpIp/cap02s04.html
+             https://sites.uclouvain.be/SystInfo/usr/include/netinet/ip_icmp.h.html
+TTL - https://www.cloudflare.com/es-es/learning/cdn/glossary/time-to-live-ttl/
 
 MAPA
 init()
