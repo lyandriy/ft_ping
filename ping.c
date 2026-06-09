@@ -13,3 +13,19 @@ void ping(char *argv)
 
     setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 }
+
+void ping_loop(void)
+{
+    struct timeval  last_send;
+    struct timeval  now;
+    double          elapsed;
+    
+    memset(&last_send, 0, sizeof(last_send));
+
+    while (g_running)
+    {
+        gettimeofday(&now, NULL);
+        elapsed = elapsed_ms(&last_send, &now);
+        
+    }
+}

@@ -82,6 +82,17 @@ int main(int argc, char **argv)
     if (setsockpot(g_cfg.sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv) < 0))
         err(EX_OSERR, "setsockopt SO_RCVTIMEO");
 
-    /*dest*/
+    /*dest convert IPv4*/
     resolve_host(g_cfg.dest_str);
+
+    signal(SIGNT, handle_sigint);
+
+    /*print first line of ping*/
+    printf("PING %s (%s): %d data bytes", g_cfg.dest_hostname, g_cfg.dest_ip, PING_PACKET_SIZE);
+    if (g_cfg.verbose)
+        printf(", id0x%04x = %d", (unsigned)g_cfg.pid & 0xffff, (unsigned)g_cfg.pid & 0xffff);
+    printf("\n");
+
+    /*send pakages*/
+    ping_loop();
 }
