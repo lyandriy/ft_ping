@@ -25,7 +25,7 @@ double timeval_to_ms(struct timeval *tv)
 void handle_sigint(int sig)
 {
     (void)sig;
-    g_runnung = 0;
+    g_running = 0;
 }
 
 void resolve_host(const char *host)
@@ -33,6 +33,7 @@ void resolve_host(const char *host)
     struct addrinfo hints;
     struct addrinfo *res;
     int             ret;
+    struct sockaddr_in *addr;
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
@@ -41,8 +42,7 @@ void resolve_host(const char *host)
     ret = getaddrinfo(host, NULL, &hints, &res);
     if (ret != 0)
         errx(EX_NOHOST, "unknown host: %s", host);
-
-    struct sockaddr_in *addr = (struct sockaddr_in *)res->ai_addr;
+    addr = (struct sockaddr_in *)res->ai_addr;
     inet_ntop(AF_INET, &addr->sin_addr, g_cfg.dest_ip, sizeof(g_cfg.dest_ip));
     memcpy(&g_cfg.dest_addr, addr, sizeof(g_cfg.dest_addr));
 
@@ -71,7 +71,7 @@ void    print_stats(void)
         loss = (int)(100.0 * (g_cfg.stats.packets_sent - g_cfg.stats.packets_recv)
                      / g_cfg.stats.packets_sent);
                 
-    printf("%d packets transmitted, %d packets received, %d packet lossn",
+    printf("%d packets transmitted, %d packets received, %d%% packet loss\n",
            g_cfg.stats.packets_sent,
            g_cfg.stats.packets_recv,
            loss);

@@ -5,14 +5,14 @@ t_ping_cfg  g_cfg;
 
 static void init_cfg(void)
 {
-    memset(&g_cfg, o, sifeof(g_cfg));
+    memset(&g_cfg, 0, sizeof(g_cfg));
     g_cfg.sockfd = -1;
     g_cfg.verbose = 0;
-    g_cfg.ttl = DEFAULT_TTL;
+    g_cfg.ttl = DEFAULTT_TTL;
     g_cfg.seq = 0;
     g_cfg.pid = getpid();
     g_cfg.stats.rtt_min = 1e9;
-    g_cfg.stats_max = 0.0;
+    g_cfg.stats.rtt_max = 0.0;
 }
 
 static int parse_args(int argc, char **argv)
@@ -69,23 +69,23 @@ int main(int argc, char **argv)
         return (1);
 
     /*open socket*/
-    g_cfg.sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICPM);
+    g_cfg.sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
     if (g_cfg.sockfd == -1)
         err(EX_OSERR, "socket");
 
     /*Set TTL*/
-    if (setsockpot(g_cfg.sockfd, IPPROTO_IP, IP_TTL, &g_cfg.ttl, sizeof(g_cfg.ttl)) < 0)
+    if (setsockopt(g_cfg.sockfd, IPPROTO_IP, IP_TTL, &g_cfg.ttl, sizeof(g_cfg.ttl)) < 0)
         err(EX_OSERR, "setsockopt TTL");
 
     /*GET TIME*/
     struct timeval tv = {1, 0};
-    if (setsockpot(g_cfg.sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv) < 0))
+    if (setsockopt(g_cfg.sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
         err(EX_OSERR, "setsockopt SO_RCVTIMEO");
 
     /*dest convert IPv4*/
     resolve_host(g_cfg.dest_str);
 
-    signal(SIGNT, handle_sigint);
+    signal(SIGINT, handle_sigint);
 
     /*print first line of ping*/
     printf("PING %s (%s): %d data bytes", g_cfg.dest_hostname, g_cfg.dest_ip, PING_PACKET_SIZE);

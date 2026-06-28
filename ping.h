@@ -1,6 +1,9 @@
 #ifndef PING_H
 #define PING_H
 
+# define _POSIX_C_SOURCE 200112L
+# define _DEFAULT_SOURCE
+
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
@@ -55,8 +58,6 @@ extern t_ping_cfg   g_cfg;
 extern volatile int g_running;
 
 void        print_man(void);
-static void init_cfg(void);
-static int  parse_args(int argc, char **argv);
 void        resolve_host(const char *host);
 void        ping_loop(void);
 double      elapsed_ms(struct timeval *start, struct timeval *end);

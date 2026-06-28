@@ -35,7 +35,7 @@ void send_ping(void)
     icmp->un.echo.sequence = htons((uint16_t)g_cfg.seq);
 
     tv = (struct timeval *)(packet + ICMP_HEADER_SIZE);
-    getttimeofday(tv, NULL);
+    gettimeofday(tv, NULL);
 
     for (int i = (int)sizeof(struct timeval); i < PING_PACKET_SIZE; i++)
         packet[ICMP_HEADER_SIZE + i] = (uint8_t)i;
@@ -66,6 +66,62 @@ void ping(char *argv)
     tv.tv_usec = 0;
 
     setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+}
+
+void recv_ping(void)
+{
+    uint8_t             buf[RECV_BUF_SIZE];
+    struct sockaddr_in  from;
+    socklen_t           from_len;
+    int                 bytes;
+    struct  ip          *ip_hdr;
+    struct icmphdr      *icmp;
+    int                 ip_hdr_len;
+    struct timeval      recv_time;
+    struct timeval      *send_time;
+    double              rtt;
+    char                from_ip[INET_ADDRSTRLEN];
+
+    gettimeofday(&recv_time, NULL);
+
+    from_len = sizeof(from);
+    bytes = recvfrom(g_cfg.sockfd, buf, sizeof(buf),  0,
+                      (struct sockaddr *)&from, &from_len);
+    if (bytes < 0)
+    {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+            return;
+        if (g_cfg.verbose)
+            warn("recvfrom");
+        return;
+    }
+
+    ip_hdr = (struct ip *)buf;
+    ip_hdr_len = ip_hdr->ip_hl * 4;
+
+    if (bytes < ip_hdr_len + ICMP_HEADER_SIZE)
+        return ;
+    
+    icmp = (struct icmphdr *)(buf + ip_hdr_len);
+
+    inet_ntop(AF_INET, &from.sin_addr, from_ip, sizeof(from_ip));
+
+    if (ntohs(icmp->un.echo.id) != (uint16_t)(g_cfg.pid & 0xffff))
+        return ;
+    
+        send_time = (struct timeval *)(buf + ip_hdr_len + ICMP_HEADER_SIZE);
+        rtt = elapsed_ms(send_time, & recv_time);
+
+        g_cfg.stats.packets_recv++;
+        if (rtt < g_cfg.stats.rtt_min)
+            g_cfg.stats.rtt_min = rtt;
+        if (rtt > g_cfg.stats.rtt_max)
+            g_cfg.stats.rtt_max = rtt;
+        g_cfg.stats.rtt_sum += rtt;
+        g_cfg.stats.rtt_sum_sq += rtt * rtt;
+
+        printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.3f ms\n",
+                bytes - ip_hdr_len, from_ip, ntohs(icmp->un.echo.sequence), ip_hdr->ip_ttl, rtt);
 }
 
 void ping_loop(void)
