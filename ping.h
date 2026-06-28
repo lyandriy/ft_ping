@@ -1,13 +1,31 @@
 #ifndef PING_H
 #define PING_H
 
-#include <stdio.h>
-#include <string.h>
-#include <sysexits.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <err.h>
-#include <sys/time.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
+# include <unistd.h>
+# include <errno.h>
+# include <signal.h>
+# include <math.h>
+
+# include <sys/socket.h>
+# include <sys/time.h>
+# include <sys/types.h>
+# include <netinet/in.h>
+# include <netinet/ip.h>
+# include <netinet/ip_icmp.h>
+# include <arpa/inet.h>
+# include <netdb.h>
+# include <sysexits.h>
+# include <err.h>
+
+#define PING_PACKET_SIZE    56
+#define ICMP_HEADER_SIZE    8
+#define IP_HEADER_SIZE      20
+#define RECV_BUF_SIZE       1024
+#define DEFAULTT_TTL        64
+#define PING_INTERVAL       1
 
 typedef struct s_ping_stats
 {
@@ -16,7 +34,7 @@ typedef struct s_ping_stats
     double  rtt_min;
     double  rtt_max;
     double  rtt_sum;
-    double  stt_sum_sq;
+    double  rtt_sum_sq;
 }   t_ping_stats;
 
 typedef struct s_ping_cfg
@@ -34,7 +52,20 @@ typedef struct s_ping_cfg
 }   t_ping_cfg;
 
 extern t_ping_cfg   g_cfg;
+extern volatile int g_running;
 
-void print_man(void);
+void        print_man(void);
+static void init_cfg(void);
+static int  parse_args(int argc, char **argv);
+void        resolve_host(const char *host);
+void        ping_loop(void);
+double      elapsed_ms(struct timeval *start, struct timeval *end);
+void        send_ping(void);
+uint16_t    checksum(void *buf, int len);
+void        recv_ping(void);
+void        print_stats(void);
+void        handle_sigint(int sig);
+double      timeval_to_ms(struct timeval *tv);
+
 
 #endif

@@ -95,4 +95,9 @@ int main(int argc, char **argv)
 
     /*send pakages*/
     ping_loop();
+
+    print_stats();
+
+    close(g_cfg.sockfd);
+    return (g_cfg.stats.packets_recv == 0 ? 1 : 0);
 }

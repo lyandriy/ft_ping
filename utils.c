@@ -17,6 +17,17 @@ void print_man(void)
     );
 }
 
+double timeval_to_ms(struct timeval *tv)
+{
+    return (tv->tv_sec * 1000.0 + tv->tv_usec / 1000.0);
+}
+
+void handle_sigint(int sig)
+{
+    (void)sig;
+    g_runnung = 0;
+}
+
 void resolve_host(const char *host)
 {
     struct addrinfo hints;
@@ -41,14 +52,36 @@ void resolve_host(const char *host)
     freeaddrinfo(res);
 }
 
-void handle_sigint(init sig)
-{
-    (void)sig;
-    g_running = 0;
-}
-
 double elapsed_ms(struct timeval *start, struct timeval *end)
 {
     return ((end->tv_sec - start->tv_sec) * 1000.0 +
             (end->tv_usec - start->tv_usec) / 1000.0);
+}
+
+void    print_stats(void)
+{
+    double  avg;
+    double  stddev;
+    int     loss;
+
+    printf("\n--- %s ping statistics ---\n", g_cfg.dest_hostname);
+
+    loss = 0;
+    if (g_cfg.stats.packets_sent > 0)
+        loss = (int)(100.0 * (g_cfg.stats.packets_sent - g_cfg.stats.packets_recv)
+                     / g_cfg.stats.packets_sent);
+                
+    printf("%d packets transmitted, %d packets received, %d packet lossn",
+           g_cfg.stats.packets_sent,
+           g_cfg.stats.packets_recv,
+           loss);
+
+    if (g_cfg.stats.packets_recv > 0)
+    {
+        avg = g_cfg.stats.rtt_sum / g_cfg.stats.packets_recv;
+        stddev = sqrt(g_cfg.stats.rtt_sum_sq / g_cfg.stats.packets_recv
+                      - avg * avg);
+        printf("round-trip min/avg/max/stddev = %.3f/%.3f/%.3f/%.3f ms\n",
+                g_cfg.stats.rtt_min, avg, g_cfg.stats.rtt_max, stddev);
+    }
 }
